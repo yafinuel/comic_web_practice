@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comic;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -9,12 +10,30 @@ class HomeController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $comic = [
-            'comicTitle' => 'Necromancer! I am the Scourge'
-        ];
-        return view('home.home', $comic);
+        $filter = $request->author;
+
+        $query = Comic::select('title', 'id', 'author', 'published_at');
+        
+        if($filter){
+            $query->where('author', $filter);
+        }
+
+        $comics = $query->get();
+        
+        $authors = Comic::select('author')->distinct()->pluck('author');
+        $newestComics = Comic::select('title', 'id')->latest('published_at')->take(5)->get();
+        $latest = Comic::select('title', 'id')->latest('published_at')->first();
+        $oldest = Comic::select('title', 'id')->oldest('published_at')->first();
+
+        return view('home.home', [
+            'comics' => $comics, 
+            'newestComics' => $newestComics, 
+            'authors' => $authors,
+            'latest' => $latest,
+            'oldest' => $oldest,
+        ]);
     }
 
     /**

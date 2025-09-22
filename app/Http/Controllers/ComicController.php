@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Comic;
 use Illuminate\Http\Request;
 
 class ComicController extends Controller
@@ -9,9 +10,15 @@ class ComicController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $keyword = $request->search;
+
+        $comics = Comic::when($keyword, function($query, $keyword){
+            return $query->where('title', 'like', "%{$keyword}%");     
+        })->get();
+
+        return view('comic.search', compact('comics', 'keyword'));
     }
 
     /**
@@ -35,11 +42,9 @@ class ComicController extends Controller
      */
     public function show(string $id)
     {
-        $comic = [
-            'comicTitle' => 'Necromancer! I am the Scourge',
-            'comicDesc' => 'The game descends into reality, the rules of the world are overturned, and humanity enters an era of universal class change. Only by becoming a class changer! Leveling up and becoming stronger! Can one rise to the top of the world! On the day of his class'
-        ];
-        return view('comic.show', $comic);
+        $comic = Comic::find($id);
+
+        return view('comic.show', ["comic" => $comic]);
     }
 
     /**
